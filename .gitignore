@@ -2,3 +2,10 @@ target
 private
 .idea
 *.iml
+.classpath
+.project
+.settings
+lint.xml
+project.properties
+*debuglog.txt
+

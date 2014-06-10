@@ -16,16 +16,16 @@
 
 package com.google.zxing;
 
-import com.google.zxing.aztec.AztecReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+import com.google.zxing.aztec2.EnhancedAztecReader;
 import com.google.zxing.datamatrix.DataMatrixReader;
 import com.google.zxing.maxicode.MaxiCodeReader;
 import com.google.zxing.oned.MultiFormatOneDReader;
 import com.google.zxing.pdf417.PDF417Reader;
 import com.google.zxing.qrcode.QRCodeReader;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * MultiFormatReader is a convenience class and the main entry point into the library for most uses.
@@ -124,7 +124,7 @@ public final class MultiFormatReader implements Reader {
         readers.add(new DataMatrixReader());
       }
       if (formats.contains(BarcodeFormat.AZTEC)) {
-        readers.add(new AztecReader());
+        readers.add(new EnhancedAztecReader());
       }
       if (formats.contains(BarcodeFormat.PDF_417)) {
          readers.add(new PDF417Reader());
@@ -144,7 +144,7 @@ public final class MultiFormatReader implements Reader {
 
       readers.add(new QRCodeReader());
       readers.add(new DataMatrixReader());
-      readers.add(new AztecReader());
+      readers.add(new EnhancedAztecReader());
       readers.add(new PDF417Reader());
       readers.add(new MaxiCodeReader());
 
