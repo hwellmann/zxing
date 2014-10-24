@@ -18,6 +18,9 @@ package com.google.zxing.aztec2;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
@@ -36,6 +39,8 @@ import com.google.zxing.common.HybridBinarizer;
  *
  */
 public class EnhancedAztecReader implements Reader {
+	
+	private static Logger log = LoggerFactory.getLogger("aztec");
 
     @Override
     public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException,
@@ -48,6 +53,7 @@ public class EnhancedAztecReader implements Reader {
         throws NotFoundException, ChecksumException, FormatException {
         BitMatrix matrix = image.getBlackMatrix();
         ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix);
+        log.info("find components");
         ccf.findConnectedComponents();
 
         AztecDetector detector = new AztecDetector(ccf);
@@ -56,6 +62,7 @@ public class EnhancedAztecReader implements Reader {
             throw NotFoundException.getNotFoundInstance();
         }
 
+        log.info("normalize");
         detector.computeTransform();
         BitMatrix nm = detector.normalizeMatrix(2, 4);
         
@@ -63,6 +70,7 @@ public class EnhancedAztecReader implements Reader {
         BinaryBitmap normalizedBitmap = new BinaryBitmap(new HybridBinarizer(normalizedSource));
 
         AztecReader aztecReader = new AztecReader();
+        log.info("decode");
         Result result = aztecReader.decode(normalizedBitmap, hints);
         
         return result;
