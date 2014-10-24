@@ -247,8 +247,9 @@ public class AztecDetector {
     /**
      * @param values
      * @return
+     * @throws NotFoundException 
      */
-    private int findTopLine(int[] lineValues) {
+    private int findTopLine(int[] lineValues) throws NotFoundException {
         int index = 0;
         for (int lineValue : lineValues) {
             int bits = (lineValue & (3 << 12)) >> 11 | (lineValue & 1);
@@ -257,7 +258,7 @@ public class AztecDetector {
             }
             index++;
         }
-        return -1;
+        throw NotFoundException.getNotFoundInstance();
     }
 
     public void sampleChanges(List<Integer> changes, float dx, float dy) {
@@ -284,7 +285,7 @@ public class AztecDetector {
     }
 
     public PerspectiveTransform optimizeTransform(PerspectiveTransform inverseTransform,
-        int expectedChanges) {
+        int expectedChanges) throws NotFoundException {
         this.inverseTransform = inverseTransform;
         Envelope env = new Envelope();
         env.minX = 0;
@@ -359,7 +360,7 @@ public class AztecDetector {
         return normalized;
     }
 
-    private float[] findReferencePoint(float dxPos, float dyPos, int expectedChanges) {
+    private float[] findReferencePoint(float dxPos, float dyPos, int expectedChanges) throws NotFoundException {
         float[] ref = new float[2];
 
         List<Integer> changesPos = new ArrayList<>();
@@ -373,7 +374,7 @@ public class AztecDetector {
         log.debug("changesPos = {}", changesPos.size());
         log.debug("{}", changesPos);
         if (changesPos.size() < expectedChanges + 1) {
-            throw new IllegalStateException();
+            throw NotFoundException.getNotFoundInstance();
         }
 
         int t1 = changesPos.get(expectedChanges - 1);
