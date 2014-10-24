@@ -41,7 +41,7 @@ import com.google.zxing.common.PerspectiveTransform;
 public class AztecDetector {
 
     private static Logger log = LoggerFactory.getLogger(AztecDetector.class);
-    
+
     private static final int ROT[][] = {
         { 0, 1, 3, 2 },
         { 1, 2, 0, 3 },
@@ -253,8 +253,8 @@ public class AztecDetector {
         int index = 0;
         for (int lineValue : lineValues) {
             int bits = (lineValue & (3 << 12)) >> 11 | (lineValue & 1);
-            if (bits == 1) {
-                return (index + 1) % 4;
+            if (bits == 7) {
+                return (index - 1) % 4;
             }
             index++;
         }
@@ -504,7 +504,7 @@ public class AztecDetector {
 
     /**
      * Gets the inverseTransform.
-     * 
+     *
      * @return the inverseTransform
      */
     public PerspectiveTransform getInverseTransform() {
@@ -513,7 +513,7 @@ public class AztecDetector {
 
     /**
      * Gets the numLayers.
-     * 
+     *
      * @return the numLayers
      */
     public int getNumLayers() {
@@ -522,7 +522,7 @@ public class AztecDetector {
 
     /**
      * Gets the matrixSize.
-     * 
+     *
      * @return the matrixSize
      */
     public int getMatrixSize() {

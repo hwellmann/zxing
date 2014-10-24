@@ -39,8 +39,8 @@ import com.google.zxing.common.HybridBinarizer;
  *
  */
 public class EnhancedAztecReader implements Reader {
-	
-	private static Logger log = LoggerFactory.getLogger("aztec");
+
+    private static Logger log = LoggerFactory.getLogger(EnhancedAztecReader.class.getSimpleName());
 
     @Override
     public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException,
@@ -57,12 +57,13 @@ public class EnhancedAztecReader implements Reader {
         ccf.findConnectedComponents();
 
         AztecDetector detector = new AztecDetector(ccf);
+        log.info("detect");
         boolean found = detector.detect();
         if (!found) {
             throw NotFoundException.getNotFoundInstance();
         }
 
-        log.info("normalize");
+        log.info("computeTransform");
         detector.computeTransform();
         BitMatrix nm = detector.normalizeMatrix(2, 4);
         
@@ -72,7 +73,8 @@ public class EnhancedAztecReader implements Reader {
         AztecReader aztecReader = new AztecReader();
         log.info("decode");
         Result result = aztecReader.decode(normalizedBitmap, hints);
-        
+        log.info("done");
+
         return result;
     }
 
