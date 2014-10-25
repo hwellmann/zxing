@@ -149,12 +149,13 @@ public class ConnectedComponentFinder {
         minNeighbour = Integer.MAX_VALUE;
         checkNeighbour(x - 1, y, bit);
         checkNeighbour(x + 1, y, bit);
+        checkNeighbour(x, y - 1, bit);
         checkNeighbour(x, y + 1, bit);
 
-        checkNeighbour(x - 1, y - 1, bit);
-        checkNeighbour(x + 1, y - 1, bit);
-        checkNeighbour(x - 1, y + 1, bit);
-        checkNeighbour(x + 1, y + 1, bit);
+//        checkNeighbour(x - 1, y - 1, bit);
+//        checkNeighbour(x + 1, y - 1, bit);
+//        checkNeighbour(x - 1, y + 1, bit);
+//        checkNeighbour(x + 1, y + 1, bit);
 
         if (minNeighbour == Integer.MAX_VALUE) {
             currentLabel++;
