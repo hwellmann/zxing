@@ -254,7 +254,7 @@ public class AztecDetector {
         for (int lineValue : lineValues) {
             int bits = (lineValue & (3 << 12)) >> 11 | (lineValue & 1);
             if (bits == 7) {
-                return (index - 1) % 4;
+                return (index + 3) % 4;
             }
             index++;
         }
