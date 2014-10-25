@@ -26,16 +26,15 @@ import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
-import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
 import com.google.zxing.aztec.AztecDetectorResult;
-import com.google.zxing.aztec.AztecReader;
+import com.google.zxing.aztec.decoder.Decoder;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.common.DecoderResult;
 
 /**
  * @author hwellmann
@@ -86,18 +85,15 @@ public class EnhancedAztecReader implements Reader {
 
         log.info("computeTransform");
         detector.computeTransform();
-        BitMatrix nm = detector.normalizeMatrix(2, 4);
 
-        LuminanceSource normalizedSource = new BitMatrixLuminanceSource(nm);
-        BinaryBitmap normalizedBitmap = new BinaryBitmap(new HybridBinarizer(normalizedSource));
-
-        AztecReader aztecReader = new AztecReader();
-        log.info("decode");
-        Result result = aztecReader.decode(normalizedBitmap, hints);
-        log.info("done");
-        
         AztecDetectorResult detectorResult = detector.getDetectorResult();
-        result = new Result(result.getText(), result.getRawBytes(), detectorResult.getPoints(), BarcodeFormat.AZTEC);
+
+        log.info("decode");
+        DecoderResult decoderResult = new Decoder().decode(detectorResult);
+        log.info("done");
+
+        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(),
+            detectorResult.getPoints(), BarcodeFormat.AZTEC);
 
         if (hints != null) {
             ResultPointCallback rpcb = (ResultPointCallback) hints
@@ -116,7 +112,5 @@ public class EnhancedAztecReader implements Reader {
     @Override
     public void reset() {
         // do nothing
-
     }
-
 }

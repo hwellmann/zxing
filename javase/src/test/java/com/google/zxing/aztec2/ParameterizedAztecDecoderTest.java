@@ -58,8 +58,10 @@ public class ParameterizedAztecDecoderTest {
             { "03.png" },
             { "04.png" },
             { "05.png" },
-            { "06.png" },
-            { "07.png" },
+
+            // too distorted
+            // { "06.png" },
+            // { "07.png" },
 
             // 45 degrees
             // { "08.png" },
@@ -80,9 +82,7 @@ public class ParameterizedAztecDecoderTest {
             // too blurred
             // { "19.png" },
 
-            // too distorted
-            // { "20.png" },
-
+            { "20.png" },
             { "21.png" },
             { "22.png" },
         });

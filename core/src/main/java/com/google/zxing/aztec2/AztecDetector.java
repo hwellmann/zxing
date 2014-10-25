@@ -28,6 +28,9 @@ import com.google.zxing.ResultPoint;
 import com.google.zxing.aztec.AztecDetectorResult;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.PerspectiveTransform;
+import com.google.zxing.common.reedsolomon.GenericGF;
+import com.google.zxing.common.reedsolomon.ReedSolomonDecoder;
+import com.google.zxing.common.reedsolomon.ReedSolomonException;
 
 /**
  * Detects an Aztec Code in a bit matrix, based on the connected components of this bit matrix.
@@ -83,6 +86,8 @@ public class AztecDetector {
 
     /** Number of Aztec code layers. */
     private int numLayers;
+    
+    private int numDataBlocks;
 
     /** Actual code matrix width (number of modules). */
     private int matrixSize;
@@ -124,7 +129,7 @@ public class AztecDetector {
         for (int i = 0; i < 4; i++) {
             points[i] = new ResultPoint(outerCorners[2 * i], outerCorners[2 * i + 1]);
         }
-        return new AztecDetectorResult(bits, points, false, 0, numLayers);
+        return new AztecDetectorResult(bits, points, false, numDataBlocks, numLayers);
     }
 
     public boolean isBlackCentre(BitMatrix matrix, ConnectedComponent component) {
@@ -260,10 +265,20 @@ public class AztecDetector {
 
         topLineIndex = findTopLine(values);
         log.debug("topLineIndex = {}", topLineIndex);
-        numLayers = values[topLineIndex] >> 7;
-        numLayers &= 0X1F;
-        numLayers++;
-        log.debug("numLayers = {}", numLayers);
+        
+        long parameterData = 0;
+        for (int i = 0; i < 4; i++) {
+            int side = values[(topLineIndex + i) % 4];
+            // Each side of the form ..XXXXX.XXXXX. where Xs are parameter data
+            parameterData <<= 10;
+            parameterData += ((side >> 2) & (0x1f << 5)) + ((side >> 1) & 0x1F);
+        }
+        
+        int correctedData = getCorrectedParameterData(parameterData, false);
+        numLayers = (correctedData >> 11) + 1;
+        numDataBlocks = (correctedData & 0x7FF) + 1;
+        
+        log.debug("numLayers = {}, numDataBlocks = {}", numLayers, numDataBlocks);
 
         /* Net code matrix width (number of modules), not counting reference grid lines. */
         int baseMatrixSize = 14 + numLayers * 4;
@@ -272,6 +287,52 @@ public class AztecDetector {
         matrixSize = baseMatrixSize + 1 + 2 * numReferenceLines;
     }
 
+    /**
+     * Corrects the parameter bits using Reed-Solomon algorithm.
+     * 
+     * @param parameterData
+     *            parameter bits
+     * @param compact
+     *            true if this is a compact Aztec code
+     * @throws NotFoundException
+     *             if the array contains too many errors
+     */
+    private static int getCorrectedParameterData(long parameterData, boolean compact)
+        throws NotFoundException {
+        int numCodewords;
+        int numDataCodewords;
+
+        if (compact) {
+            numCodewords = 7;
+            numDataCodewords = 2;
+        }
+        else {
+            numCodewords = 10;
+            numDataCodewords = 4;
+        }
+
+        int numECCodewords = numCodewords - numDataCodewords;
+        int[] parameterWords = new int[numCodewords];
+        for (int i = numCodewords - 1; i >= 0; --i) {
+            parameterWords[i] = (int) parameterData & 0xF;
+            parameterData >>= 4;
+        }
+        try {
+            ReedSolomonDecoder rsDecoder = new ReedSolomonDecoder(GenericGF.AZTEC_PARAM);
+            rsDecoder.decode(parameterWords, numECCodewords);
+        }
+        catch (ReedSolomonException ignored) {
+            throw NotFoundException.getNotFoundInstance();
+        }
+        // Toss the error correction. Just return the data as an integer
+        int result = 0;
+        for (int i = 0; i < numDataCodewords; i++) {
+            result = (result << 4) + parameterWords[i];
+        }
+        return result;
+    }    
+    
+    
     private boolean getBitSafely(int x, int y) throws NotFoundException {
         try {
             return matrix.get(x, y);
