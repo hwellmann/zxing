@@ -32,6 +32,9 @@ import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 import com.google.zxing.Reader;
 import com.google.zxing.Result;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
+import com.google.zxing.aztec.AztecDetectorResult;
 import com.google.zxing.aztec.AztecReader;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
@@ -96,6 +99,17 @@ public class EnhancedAztecReader implements Reader {
         Result result = aztecReader.decode(normalizedBitmap, hints);
         log.info("done");
 
+        if (hints != null) {
+            ResultPointCallback rpcb = (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+            if (rpcb != null) {
+            	AztecDetectorResult detectorResult = detector.getDetectorResult();
+              for (ResultPoint point : detectorResult.getPoints()) {
+                rpcb.foundPossibleResultPoint(point);
+              }
+            }
+          }
+        
+        
         return result;
     }
 

@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.zxing.NotFoundException;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.aztec.AztecDetectorResult;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.PerspectiveTransform;
 
@@ -49,9 +51,20 @@ public class AztecDetector {
         { 3, 0, 2, 1 }
     };
 
-    private ConnectedComponentFinder ccf;
+    /** The bit matrix this detector is working on. */
     private BitMatrix matrix;
 
+    /** Finds connected components in the given bit matrix. */
+    private ConnectedComponentFinder ccf;
+    
+    /** Connected component of the bull's eye outermost white square. */
+    private ConnectedComponent whiteSquare;
+    
+    /** Label of whiteSquare. */
+    private int whiteSquareLabel;
+
+    // Coordinates of the corners of whiteSquare
+    
     private int nwx;
     private int nwy;
     private int nex;
@@ -60,24 +73,31 @@ public class AztecDetector {
     private int swy;
     private int sex;
     private int sey;
-    private int whiteSquareLabel;
-    private ConnectedComponent whiteSquare;
+    
+    
+    
     private int envDim;
+    
+    /** Envelope of white square. */
     private Envelope wsEnv;
 
+    /** Inverse perspective transform, mapping normalized matrix to original matrix. */
     private PerspectiveTransform inverseTransform;
 
+    /** Number of Aztec code layers. */
     private int numLayers;
 
-    private int baseMatrixSize;
-
+    /** Actual code matrix width (number of modules). */
     private int matrixSize;
 
-    private int numExtraLines;
+    /** Number of <em>additional</em> reference grid lines, counting from the centre. */
+    private int numReferenceLines;
 
     private int topLineIndex;
 
     private Envelope env;
+    
+    private float[] outerCorners = new float[4 * 2];
 
     public AztecDetector(ConnectedComponentFinder ccf) {
         this.ccf = ccf;
@@ -99,6 +119,15 @@ public class AztecDetector {
             found = isBlackCentre(matrix, component);
         }
         return found;
+    }
+    
+    public AztecDetectorResult getDetectorResult() {
+    	BitMatrix bits = normalizeMatrix(1, 0);
+    	ResultPoint[] points = new ResultPoint[4];
+    	for (int i = 0; i < 4; i++) {
+    		points[i] = new ResultPoint(outerCorners[2 * i], outerCorners[2 * i + 1]);
+    	}
+    	return new AztecDetectorResult(bits, points, false, 0, numLayers);
     }
 
     public boolean isBlackCentre(BitMatrix matrix, ConnectedComponent component) {
@@ -160,12 +189,20 @@ public class AztecDetector {
         findCorners();
         computeInitialTransform();
         decodeNumLayers();
-        for (int i = 1; i <= numExtraLines; i++) {
+        for (int i = 1; i <= numReferenceLines; i++) {
             inverseTransform = optimizeTransform(inverseTransform, 16 * i);
         }
+        float q = 5.0f * numLayers;
+        outerCorners = new float[] { -q, -q, q, -q, q, q, -q, q };
+        inverseTransform.transformPoints(outerCorners);
         return inverseTransform;
     }
 
+    /**
+     * Finds the corners of the outermost white square of the bull's eye.
+     * 
+     * @throws NotFoundException
+     */
     public void findCorners() throws NotFoundException {
     	if (whiteSquare == null) {
     		throw NotFoundException.getNotFoundInstance();
@@ -230,9 +267,12 @@ public class AztecDetector {
         numLayers &= 0X1F;
         numLayers++;
         log.debug("numLayers = {}", numLayers);
-        baseMatrixSize = 14 + numLayers * 4;
-        numExtraLines = (baseMatrixSize / 2 - 1) / 15;
-        matrixSize = baseMatrixSize + 1 + 2 * numExtraLines;
+
+        /* Net code matrix width (number of modules), not counting reference grid lines. */
+        int baseMatrixSize = 14 + numLayers * 4;
+
+        numReferenceLines = (baseMatrixSize / 2 - 1) / 15;
+        matrixSize = baseMatrixSize + 1 + 2 * numReferenceLines;
     }
     
     private boolean getBitSafely(int x, int y) throws NotFoundException {

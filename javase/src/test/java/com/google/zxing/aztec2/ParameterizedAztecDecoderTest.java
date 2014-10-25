@@ -111,7 +111,7 @@ public class ParameterizedAztecDecoderTest {
         HybridBinarizer binarizer = new HybridBinarizer(luminanceSource);
         BitMatrix matrix = binarizer.getBlackMatrix();
 
-        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix);
+        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix, false);
         ccf.findConnectedComponents();
 
         AztecDetector detector = new AztecDetector(ccf);

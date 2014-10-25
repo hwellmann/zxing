@@ -46,7 +46,7 @@ public class ConnectedComponentFinderTest {
         TextBitMatrixReader matrixReader = new TextBitMatrixReader();
         BitMatrix matrix = matrixReader.read("src/test/resources/aztec/bullsEye.txt");
         
-        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix);
+        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix, false);
         ccf.findConnectedComponents();
         
         for (int y = 0; y < matrix.getHeight(); y++) {
@@ -68,7 +68,7 @@ public class ConnectedComponentFinderTest {
 
         MatrixToImageWriter.writeToPath(matrix, "PNG", Paths.get("target/bits.png"));
         
-        ccf = new ConnectedComponentFinder(matrix);
+        ccf = new ConnectedComponentFinder(matrix, false);
         log.debug("start");
         ccf.findConnectedComponents();
         log.debug("done");
