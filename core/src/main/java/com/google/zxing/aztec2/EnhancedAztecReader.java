@@ -16,11 +16,14 @@
 
 package com.google.zxing.aztec2;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.DecodeHintType;
@@ -50,6 +53,24 @@ public class EnhancedAztecReader implements Reader {
 
     @Override
     public Result decode(BinaryBitmap image, Map<DecodeHintType, ?> hints)
+        throws NotFoundException, ChecksumException, FormatException {
+    	try {
+    		return decodeUnsafe(image, hints);
+    	}
+    	catch (NotFoundException | ChecksumException | FormatException exc) {
+    		throw exc;
+    	}
+    	catch (Exception exc) {
+    		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			PrintStream ps = new PrintStream(baos);
+    		exc.printStackTrace(ps);
+    		ps.close();
+    	    Result result = new Result(baos.toString(), null, null, BarcodeFormat.AZTEC);
+    	    return result;
+    	}
+    }
+
+    public Result decodeUnsafe(BinaryBitmap image, Map<DecodeHintType, ?> hints)
         throws NotFoundException, ChecksumException, FormatException {
         BitMatrix matrix = image.getBlackMatrix();
         ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix);
