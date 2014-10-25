@@ -1,17 +1,15 @@
 /*
  * Copyright 2014 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.google.zxing.aztec2;
@@ -35,10 +33,11 @@ import com.google.zxing.common.PerspectiveTransform;
  * Detects an Aztec Code in a bit matrix, based on the connected components of this bit matrix.
  * <p>
  * First of all, the bull's eye is detected by its topological properties. We are looking for a
- * group of concentric rings with alternating colour. Any line intersecting the black component
- * in the centre of the bull's eye
+ * group of concentric rings with alternating colour. Any line intersecting the black component in
+ * the centre of the bull's eye
+ * 
  * @author hwellmann
- *
+ * 
  */
 public class AztecDetector {
 
@@ -56,15 +55,15 @@ public class AztecDetector {
 
     /** Finds connected components in the given bit matrix. */
     private ConnectedComponentFinder ccf;
-    
+
     /** Connected component of the bull's eye outermost white square. */
     private ConnectedComponent whiteSquare;
-    
+
     /** Label of whiteSquare. */
     private int whiteSquareLabel;
 
     // Coordinates of the corners of whiteSquare
-    
+
     private int nwx;
     private int nwy;
     private int nex;
@@ -73,11 +72,9 @@ public class AztecDetector {
     private int swy;
     private int sex;
     private int sey;
-    
-    
-    
+
     private int envDim;
-    
+
     /** Envelope of white square. */
     private Envelope wsEnv;
 
@@ -96,7 +93,7 @@ public class AztecDetector {
     private int topLineIndex;
 
     private Envelope env;
-    
+
     private float[] outerCorners = new float[4 * 2];
 
     public AztecDetector(ConnectedComponentFinder ccf) {
@@ -120,14 +117,14 @@ public class AztecDetector {
         }
         return found;
     }
-    
+
     public AztecDetectorResult getDetectorResult() {
-    	BitMatrix bits = normalizeMatrix(1, 0);
-    	ResultPoint[] points = new ResultPoint[4];
-    	for (int i = 0; i < 4; i++) {
-    		points[i] = new ResultPoint(outerCorners[2 * i], outerCorners[2 * i + 1]);
-    	}
-    	return new AztecDetectorResult(bits, points, false, 0, numLayers);
+        BitMatrix bits = normalizeMatrix(1, 0);
+        ResultPoint[] points = new ResultPoint[4];
+        for (int i = 0; i < 4; i++) {
+            points[i] = new ResultPoint(outerCorners[2 * i], outerCorners[2 * i + 1]);
+        }
+        return new AztecDetectorResult(bits, points, false, 0, numLayers);
     }
 
     public boolean isBlackCentre(BitMatrix matrix, ConnectedComponent component) {
@@ -204,9 +201,9 @@ public class AztecDetector {
      * @throws NotFoundException
      */
     public void findCorners() throws NotFoundException {
-    	if (whiteSquare == null) {
-    		throw NotFoundException.getNotFoundInstance();
-    	}
+        if (whiteSquare == null) {
+            throw NotFoundException.getNotFoundInstance();
+        }
         wsEnv = whiteSquare.getEnvelope();
         int envWidth = wsEnv.maxX - wsEnv.minX;
         int envHeight = wsEnv.maxY - wsEnv.minY;
@@ -274,20 +271,20 @@ public class AztecDetector {
         numReferenceLines = (baseMatrixSize / 2 - 1) / 15;
         matrixSize = baseMatrixSize + 1 + 2 * numReferenceLines;
     }
-    
+
     private boolean getBitSafely(int x, int y) throws NotFoundException {
-    	try {
-    		return matrix.get(x, y);
-    	}
-    	catch (ArrayIndexOutOfBoundsException exc) {
-    		throw NotFoundException.getNotFoundInstance();
-    	}
+        try {
+            return matrix.get(x, y);
+        }
+        catch (ArrayIndexOutOfBoundsException exc) {
+            throw NotFoundException.getNotFoundInstance();
+        }
     }
 
     /**
      * @param values
      * @return
-     * @throws NotFoundException 
+     * @throws NotFoundException
      */
     private int findTopLine(int[] lineValues) throws NotFoundException {
         int index = 0;
@@ -400,7 +397,8 @@ public class AztecDetector {
         return normalized;
     }
 
-    private float[] findReferencePoint(float dxPos, float dyPos, int expectedChanges) throws NotFoundException {
+    private float[] findReferencePoint(float dxPos, float dyPos, int expectedChanges)
+        throws NotFoundException {
         float[] ref = new float[2];
 
         List<Integer> changesPos = new ArrayList<>();
@@ -474,7 +472,7 @@ public class AztecDetector {
     private int rot(int i) {
         int j = i / 2;
         int k = i % 2;
-        return 2*ROT[topLineIndex][j] + k;
+        return 2 * ROT[topLineIndex][j] + k;
     }
 
     /**
@@ -544,7 +542,7 @@ public class AztecDetector {
 
     /**
      * Gets the inverseTransform.
-     *
+     * 
      * @return the inverseTransform
      */
     public PerspectiveTransform getInverseTransform() {
@@ -553,7 +551,7 @@ public class AztecDetector {
 
     /**
      * Gets the numLayers.
-     *
+     * 
      * @return the numLayers
      */
     public int getNumLayers() {
@@ -562,7 +560,7 @@ public class AztecDetector {
 
     /**
      * Gets the matrixSize.
-     *
+     * 
      * @return the matrixSize
      */
     public int getMatrixSize() {

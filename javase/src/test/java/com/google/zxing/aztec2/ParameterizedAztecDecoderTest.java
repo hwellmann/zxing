@@ -1,17 +1,15 @@
 /*
  * Copyright 2014 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 
 package com.google.zxing.aztec2;
@@ -43,57 +41,55 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
 
-
 /**
  * @author hwellmann
- *
+ * 
  */
 @RunWith(Parameterized.class)
 public class ParameterizedAztecDecoderTest {
 
-    @Parameters(name= "{0}")
+    @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
-            return Arrays.asList(new Object[][] { 
-                { "01.png" }, 
-                { "02.png" }, 
-                { "03.png" }, 
-                { "04.png" }, 
-                { "05.png" }, 
-                { "06.png" }, 
-                { "07.png" },
-                
-                // 45 degrees
-                // { "08.png" },
-                
-                
-// compact codes                
-//                { "09.png" }, 
-//                { "10.png" }, 
-//                { "11.png" }, 
-//                { "12.png" }, 
-//                { "13.png" }, 
-//                { "14.png" }, 
-//                { "15.png" }, 
+        return Arrays.asList(new Object[][] {
+            { "01.png" },
+            { "02.png" },
+            { "03.png" },
+            { "04.png" },
+            { "05.png" },
+            { "06.png" },
+            { "07.png" },
 
-                { "16.png" }, 
-                { "17.png" }, 
-                { "18.png" }, 
-                
-                // too blurred
-                // { "19.png" },
-                
-                // too distorted
-                // { "20.png" }, 
-                
-                { "21.png" }, 
-                { "22.png" }, 
-             });
+            // 45 degrees
+            // { "08.png" },
+
+            // compact codes
+            // { "09.png" },
+            // { "10.png" },
+            // { "11.png" },
+            // { "12.png" },
+            // { "13.png" },
+            // { "14.png" },
+            // { "15.png" },
+
+            { "16.png" },
+            { "17.png" },
+            { "18.png" },
+
+            // too blurred
+            // { "19.png" },
+
+            // too distorted
+            // { "20.png" },
+
+            { "21.png" },
+            { "22.png" },
+        });
     }
-    
+
     private String sourceFileName;
     private String textFileName;
     private String testDirName = "../core/src/test/resources/blackbox/aztec-2";
-    
+
     /**
      * 
      */
@@ -101,8 +97,8 @@ public class ParameterizedAztecDecoderTest {
         this.sourceFileName = sourceFileName;
         this.textFileName = sourceFileName.replace(".png", ".txt");
     }
-    
-    //@Test
+
+    // @Test
     public void decode() throws Exception {
         File sourceFile = new File(testDirName, sourceFileName);
 
@@ -120,7 +116,7 @@ public class ParameterizedAztecDecoderTest {
 
         detector.computeTransform();
         BitMatrix nm = detector.normalizeMatrix(2, 4);
-        
+
         BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(nm);
         LuminanceSource normalizedSource = new BufferedImageLuminanceSource(bufferedImage);
         BinaryBitmap normalizedBitmap = new BinaryBitmap(new HybridBinarizer(normalizedSource));
@@ -128,7 +124,7 @@ public class ParameterizedAztecDecoderTest {
         AztecReader aztecReader = new AztecReader();
         Result result = aztecReader.decode(normalizedBitmap);
         String actualText = result.getText();
-        
+
         File textFile = new File(testDirName, textFileName);
         byte[] expectedBytes = Files.readAllBytes(textFile.toPath());
         String expectedText = new String(expectedBytes, StandardCharsets.ISO_8859_1);
@@ -146,7 +142,7 @@ public class ParameterizedAztecDecoderTest {
         EnhancedAztecReader aztecReader = new EnhancedAztecReader();
         Result result = aztecReader.decode(binaryBitmap);
         String actualText = result.getText();
-        
+
         File textFile = new File(testDirName, textFileName);
         byte[] expectedBytes = Files.readAllBytes(textFile.toPath());
         String expectedText = new String(expectedBytes, StandardCharsets.ISO_8859_1);
