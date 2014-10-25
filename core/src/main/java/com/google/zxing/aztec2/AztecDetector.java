@@ -189,7 +189,7 @@ public class AztecDetector {
         for (int i = 1; i <= numReferenceLines; i++) {
             inverseTransform = optimizeTransform(inverseTransform, 16 * i);
         }
-        float q = 5.0f * numLayers;
+        float q = 5.0f * matrixSize;
         outerCorners = new float[] { -q, -q, q, -q, q, q, -q, q };
         inverseTransform.transformPoints(outerCorners);
         return inverseTransform;

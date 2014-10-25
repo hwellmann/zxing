@@ -95,14 +95,17 @@ public class EnhancedAztecReader implements Reader {
         log.info("decode");
         Result result = aztecReader.decode(normalizedBitmap, hints);
         log.info("done");
+        
+        AztecDetectorResult detectorResult = detector.getDetectorResult();
+        result = new Result(result.getText(), result.getRawBytes(), detectorResult.getPoints(), BarcodeFormat.AZTEC);
 
         if (hints != null) {
             ResultPointCallback rpcb = (ResultPointCallback) hints
                 .get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
             if (rpcb != null) {
-                AztecDetectorResult detectorResult = detector.getDetectorResult();
                 for (ResultPoint point : detectorResult.getPoints()) {
                     rpcb.foundPossibleResultPoint(point);
+                    log.info("result point: {}", point);
                 }
             }
         }

@@ -22,6 +22,8 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,12 +31,12 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.Result;
+import com.google.zxing.ResultPoint;
+import com.google.zxing.ResultPointCallback;
 import com.google.zxing.aztec.AztecReader;
-import com.google.zxing.aztec2.AztecDetector;
-import com.google.zxing.aztec2.ConnectedComponentFinder;
-import com.google.zxing.aztec2.EnhancedAztecReader;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.ImageReader;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -140,7 +142,16 @@ public class ParameterizedAztecDecoderTest {
         HybridBinarizer binarizer = new HybridBinarizer(luminanceSource);
         BinaryBitmap binaryBitmap = new BinaryBitmap(binarizer);
         EnhancedAztecReader aztecReader = new EnhancedAztecReader();
-        Result result = aztecReader.decode(binaryBitmap);
+        Map<DecodeHintType, Object> hints = new HashMap<>();
+        hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, new ResultPointCallback() {
+            
+            @Override
+            public void foundPossibleResultPoint(ResultPoint point) {
+                // TODO Auto-generated method stub
+                
+            }
+        });
+        Result result = aztecReader.decode(binaryBitmap, hints);
         String actualText = result.getText();
 
         File textFile = new File(testDirName, textFileName);
