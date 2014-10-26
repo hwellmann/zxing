@@ -36,7 +36,7 @@ import com.google.zxing.common.reedsolomon.ReedSolomonException;
  * Detects an Aztec Code in a bit matrix, based on the connected components of this bit matrix.
  * <p>
  * First of all, the bull's eye is detected by its topological properties. We are looking for a
- * group of concentric rings with alternating colour. Any line intersecting the black component in
+ * group of concentric rings with alternating colour around a black centre. Any line intersecting the black component in
  * the centre of the bull's eye
  * 
  * @author hwellmann
@@ -52,6 +52,9 @@ public class AztecDetector {
         { 2, 3, 1, 0 },
         { 3, 0, 2, 1 }
     };
+    
+    /** Module size in the normalized matrix. */
+    private static final int M = 4;
 
     /** The bit matrix this detector is working on. */
     private BitMatrix matrix;
@@ -81,13 +84,14 @@ public class AztecDetector {
     /** Envelope of white square. */
     private Envelope wsEnv;
 
-    /** Inverse perspective transform, mapping normalized matrix to original matrix. */
+    /** Inverse perspective transform, mapping square matrix to original matrix. */
     private PerspectiveTransform inverseTransform;
 
     /** Number of Aztec code layers. */
     private int numLayers;
     
-    private int numDataBlocks;
+    /** Number of data words. */
+    private int numDataWords;
 
     /** Actual code matrix width (number of modules). */
     private int matrixSize;
@@ -100,6 +104,8 @@ public class AztecDetector {
     private Envelope env;
 
     private float[] outerCorners = new float[4 * 2];
+    
+    private boolean compact;
 
     public AztecDetector(ConnectedComponentFinder ccf) {
         this.ccf = ccf;
@@ -129,7 +135,7 @@ public class AztecDetector {
         for (int i = 0; i < 4; i++) {
             points[i] = new ResultPoint(outerCorners[2 * i], outerCorners[2 * i + 1]);
         }
-        return new AztecDetectorResult(bits, points, false, numDataBlocks, numLayers);
+        return new AztecDetectorResult(bits, points, compact, numDataWords, numLayers);
     }
 
     public boolean isBlackCentre(BitMatrix matrix, ConnectedComponent component) {
@@ -154,32 +160,35 @@ public class AztecDetector {
         }
 
         Set<Integer> rings = new HashSet<Integer>();
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 6; i++) {
             if (centreIndex - i < 0) {
-                return false;
+                break;
             }
             if (centreIndex + i >= labels.size()) {
-                return false;
+                break;
             }
             if (!labels.get(centreIndex - i).equals(labels.get(centreIndex + i))) {
-                return false;
+                break;
             }
             rings.add(labels.get(centreIndex + i));
         }
-        if (rings.size() != 5) {
+        int numRings = rings.size();
+        if (numRings < 4) {
             return false;
         }
+        compact = (numRings < 6);
 
         if (log.isDebugEnabled()) {
             StringBuilder buffer = new StringBuilder();
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i <= numRings; i++) {
                 buffer.append(labels.get(centreIndex + i));
                 buffer.append(' ');
             }
             log.debug("Found black centre and surrounding rings with labels {}", labels);
         }
 
-        whiteSquareLabel = labels.get(centreIndex + 5);
+        int offset = compact ? 3 : 5;
+        whiteSquareLabel = labels.get(centreIndex + offset);
 
         whiteSquare = ccf.getComponentMap().get(whiteSquareLabel);
         log.debug("outer white square = {}", whiteSquare);
@@ -190,11 +199,11 @@ public class AztecDetector {
     public PerspectiveTransform computeTransform() throws NotFoundException {
         findCorners();
         computeInitialTransform();
-        decodeNumLayers();
+        decodeModeMessage();
         for (int i = 1; i <= numReferenceLines; i++) {
             inverseTransform = optimizeTransform(inverseTransform, 16 * i);
         }
-        float q = 5.0f * matrixSize;
+        float q = 0.5f * M * matrixSize;
         outerCorners = new float[] { -q, -q, q, -q, q, q, -q, q };
         inverseTransform.transformPoints(outerCorners);
         return inverseTransform;
@@ -222,7 +231,13 @@ public class AztecDetector {
     public PerspectiveTransform computeInitialTransform() {
 
         int d = 0;
-        int q = 55;
+        int q;
+        if (compact) {
+            q = 7 * M / 2;
+        }
+        else {
+            q = 11 * M / 2;
+        }
 
         inverseTransform =
             PerspectiveTransform.quadrilateralToQuadrilateral(
@@ -232,18 +247,19 @@ public class AztecDetector {
 
     }
 
-    public void decodeNumLayers() throws NotFoundException {
-        int q = 70;
+    public void decodeModeMessage() throws NotFoundException {
+        int r = compact ? 5 : 7;
+        int q = r * M;
         float[] c = new float[] { -q, -q, q, -q, q, q, -q, q };
-        float[] d = new float[] { 10, 0, 0, 10, -10, 0, 0, -10 };
-        float[] line = new float[2 * 14];
+        float[] d = new float[] { M, 0, 0, M, -M, 0, 0, -M };
+        float[] line = new float[2 * 2 * r];
         int[] values = new int[4];
         for (int i = 0; i < 4; i++) {
             float x = c[2 * i];
             float y = c[2 * i + 1];
             float dx = d[2 * i];
             float dy = d[2 * i + 1];
-            for (int j = 0; j < 14; j++) {
+            for (int j = 0; j < 2 * r; j++) {
                 line[2 * j] = x;
                 line[2 * j + 1] = y;
                 x += dx;
@@ -251,8 +267,8 @@ public class AztecDetector {
             }
             inverseTransform.transformPoints(line);
             int value = 0;
-            int pos = 13;
-            for (int j = 0; j < 14; j++, pos--) {
+            int pos = 2 * r -1;
+            for (int j = 0; j < 2 * r; j++, pos--) {
                 int tx = Math.round(line[2 * j]);
                 int ty = Math.round(line[2 * j + 1]);
                 boolean bit = getBitSafely(tx, ty);
@@ -269,22 +285,39 @@ public class AztecDetector {
         long parameterData = 0;
         for (int i = 0; i < 4; i++) {
             int side = values[(topLineIndex + i) % 4];
-            // Each side of the form ..XXXXX.XXXXX. where Xs are parameter data
-            parameterData <<= 10;
-            parameterData += ((side >> 2) & (0x1f << 5)) + ((side >> 1) & 0x1F);
+            if (compact) {
+                // Each side of the form ..XXXXXXX. where Xs are parameter data
+                parameterData <<= 7;
+                parameterData += (side >> 1) & 0x7F;
+            }
+            else {
+                // Each side of the form ..XXXXX.XXXXX. where Xs are parameter data
+                parameterData <<= 10;
+                parameterData += ((side >> 2) & (0x1f << 5)) + ((side >> 1) & 0x1F);
+            }
         }
         
-        int correctedData = getCorrectedParameterData(parameterData, false);
-        numLayers = (correctedData >> 11) + 1;
-        numDataBlocks = (correctedData & 0x7FF) + 1;
+        int correctedData = getCorrectedParameterData(parameterData, compact);
+        if (compact) {
+            // 8 bits: 2 bits layers and 6 bits data blocks
+            numLayers = (correctedData >> 6) + 1;
+            numDataWords = (correctedData & 0x3F) + 1;
+            matrixSize = 11 + numLayers * 4;
+            numReferenceLines = 0;
+        }
+        else {
+            // 16 bits: 5 bits layers and 11 bits data blocks
+            numLayers = (correctedData >> 11) + 1;
+            numDataWords = (correctedData & 0x7FF) + 1;
+            /* Net code matrix width (number of modules), not counting reference grid lines. */
+            int baseMatrixSize = 14 + numLayers * 4;
+
+            numReferenceLines = (baseMatrixSize / 2 - 1) / 15;
+            matrixSize = baseMatrixSize + 1 + 2 * numReferenceLines;
+        }
         
-        log.debug("numLayers = {}, numDataBlocks = {}", numLayers, numDataBlocks);
+        log.debug("numLayers = {}, numDataBlocks = {}", numLayers, numDataWords);
 
-        /* Net code matrix width (number of modules), not counting reference grid lines. */
-        int baseMatrixSize = 14 + numLayers * 4;
-
-        numReferenceLines = (baseMatrixSize / 2 - 1) / 15;
-        matrixSize = baseMatrixSize + 1 + 2 * numReferenceLines;
     }
 
     /**
@@ -349,8 +382,14 @@ public class AztecDetector {
      */
     private int findTopLine(int[] lineValues) throws NotFoundException {
         int index = 0;
+        int bits;
         for (int lineValue : lineValues) {
-            int bits = (lineValue & (3 << 12)) >> 11 | (lineValue & 1);
+            if (compact) {
+                bits = (lineValue & (3 << 8)) >> 7 | (lineValue & 1);                
+            }
+            else {
+                bits = (lineValue & (3 << 12)) >> 11 | (lineValue & 1);
+            }
             if (bits == 7) {
                 return (index + 3) % 4;
             }
@@ -364,7 +403,7 @@ public class AztecDetector {
 
         float[] point = new float[2];
         boolean currentBit = true;
-        for (int t = 0; t < matrixSize * 6; t++) {
+        for (int t = 0; t < matrixSize * (M/2+1); t++) {
             point[0] = t * dx;
             point[1] = t * dy;
             inverseTransform.transformPoints(point);
@@ -417,7 +456,7 @@ public class AztecDetector {
         inverseTransform.transformPoints(news);
         printPoints(news);
 
-        int q = expectedChanges * 10;
+        int q = expectedChanges * M;
         int d = 0;
         PerspectiveTransform optimizedTransform = PerspectiveTransform
             .quadrilateralToQuadrilateral(
@@ -441,8 +480,8 @@ public class AztecDetector {
             int x = x0;
             for (int i = -m; i <= m; i++, x += cellWidth) {
                 float[] p = new float[2];
-                p[0] = 10 * i;
-                p[1] = 10 * j;
+                p[0] = M * i;
+                p[1] = M * j;
                 inverseTransform.transformPoints(p);
                 int tx = Math.round(p[0]);
                 int ty = Math.round(p[1]);

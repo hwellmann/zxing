@@ -72,7 +72,7 @@ public class EnhancedAztecReader implements Reader {
     public Result decodeUnsafe(BinaryBitmap image, Map<DecodeHintType, ?> hints)
         throws NotFoundException, ChecksumException, FormatException {
         BitMatrix matrix = image.getBlackMatrix();
-        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix, false);
+        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix, true);
         log.info("find components");
         ccf.findConnectedComponents();
 
