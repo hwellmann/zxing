@@ -17,12 +17,12 @@
     </encoder>
   </appender>
   
-  <root level="INFO">
+  <root level="DEBUG">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="LOGFILE"/>
   </root>
   
-  <logger name="com.google.zxing" level="INFO"/>
+  <logger name="com.google.zxing" level="DEBUG"/>
 
 
   

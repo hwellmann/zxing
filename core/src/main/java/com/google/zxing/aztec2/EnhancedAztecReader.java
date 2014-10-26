@@ -78,7 +78,7 @@ public class EnhancedAztecReader implements Reader {
 
         AztecDetector detector = new AztecDetector(ccf);
         log.info("detect");
-        boolean found = detector.detect();
+        boolean found = detector.findBullsEye();
         if (!found) {
             throw NotFoundException.getNotFoundInstance();
         }

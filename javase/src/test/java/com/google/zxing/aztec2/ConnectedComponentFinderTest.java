@@ -34,7 +34,7 @@ import com.google.zxing.common.HybridBinarizer;
 
 public class ConnectedComponentFinderTest {
 
-    private static Logger log = LoggerFactory.getLogger(AztecDetectorTest.class);
+    private static Logger log = LoggerFactory.getLogger(ConnectedComponentFinderTest.class);
 
     private ConnectedComponentFinder ccf;
 

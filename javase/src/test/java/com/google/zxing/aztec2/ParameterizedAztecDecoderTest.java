@@ -114,7 +114,7 @@ public class ParameterizedAztecDecoderTest {
 
         AztecDetector detector = new AztecDetector(ccf);
 
-        assertThat(detector.detect(), is(true));
+        assertThat(detector.findBullsEye(), is(true));
 
         detector.computeTransform();
         BitMatrix nm = detector.normalizeMatrix(2, 4);
