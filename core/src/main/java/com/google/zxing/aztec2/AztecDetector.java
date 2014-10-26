@@ -68,22 +68,6 @@ public class AztecDetector {
     /** Label of whiteSquare. */
     private int whiteSquareLabel;
 
-    // Coordinates of the corners of whiteSquare
-
-    private int nwx;
-    private int nwy;
-    private int nex;
-    private int ney;
-    private int swx;
-    private int swy;
-    private int sex;
-    private int sey;
-
-    private int envDim;
-
-    /** Envelope of white square. */
-    private Envelope wsEnv;
-
     /** Inverse perspective transform, mapping square matrix to original matrix. */
     private PerspectiveTransform inverseTransform;
 
@@ -106,6 +90,8 @@ public class AztecDetector {
     private float[] outerCorners = new float[4 * 2];
     
     private boolean compact;
+
+    private Quadrilateral q;
 
     public AztecDetector(ConnectedComponentFinder ccf) {
         this.ccf = ccf;
@@ -218,31 +204,25 @@ public class AztecDetector {
         if (whiteSquare == null) {
             throw NotFoundException.getNotFoundInstance();
         }
-        wsEnv = whiteSquare.getEnvelope();
-        int envWidth = wsEnv.maxX - wsEnv.minX;
-        int envHeight = wsEnv.maxY - wsEnv.minY;
-        envDim = Math.max(envWidth, envHeight);
-        findTopLeftCorner(whiteSquareLabel);
-        findTopRightCorner(whiteSquareLabel);
-        findBottomLeftCorner(whiteSquareLabel);
-        findBottomRightCorner(whiteSquareLabel);
+        QuadrilateralFinder finder = new QuadrilateralFinder(ccf);
+        q = finder.findQuadrilateral(whiteSquareLabel);
     }
 
     public PerspectiveTransform computeInitialTransform() {
 
         int d = 0;
-        int q;
+        int s;
         if (compact) {
-            q = 7 * M / 2;
+            s = 7 * M / 2;
         }
         else {
-            q = 11 * M / 2;
+            s = 11 * M / 2;
         }
 
         inverseTransform =
             PerspectiveTransform.quadrilateralToQuadrilateral(
-                -q + d, -q + d, q + d, -q + d, -q + d, q + d, q + d, q + d,
-                nwx, nwy, nex, ney, swx, swy, sex, sey);
+                -s + d, -s + d, s + d, -s + d, -s + d, s + d, s + d, s + d,
+                q.nwx, q.nwy, q.nex, q.ney, q.swx, q.swy, q.sex, q.sey);
         return inverseTransform;
 
     }
@@ -584,62 +564,6 @@ public class AztecDetector {
         }
     }
 
-    private void findTopLeftCorner(int label) {
-        for (int j = wsEnv.minY; j < wsEnv.minY + envDim; j++) {
-            int y = j;
-            for (int x = wsEnv.minX; x < wsEnv.minX + envDim && y >= wsEnv.minY; x++, y--) {
-                if (wsEnv.contains(x, y) && ccf.getLabel(x, y) == label) {
-                    log.debug(String.format("top left = %d %d", x, y));
-                    nwx = x;
-                    nwy = y;
-                    return;
-                }
-            }
-        }
-    }
-
-    private void findTopRightCorner(int label) {
-        for (int j = wsEnv.minY; j < wsEnv.minY + envDim; j++) {
-            int y = j;
-            for (int x = wsEnv.minX + envDim; x >= wsEnv.minX && y >= wsEnv.minY; x--, y--) {
-                if (wsEnv.contains(x, y) && ccf.getLabel(x, y) == label) {
-                    log.debug(String.format("top right = %d %d", x, y));
-                    nex = x;
-                    ney = y;
-                    return;
-                }
-            }
-        }
-    }
-
-    private void findBottomLeftCorner(int label) {
-        for (int j = wsEnv.minY + envDim; j >= wsEnv.minY; j--) {
-            int y = j;
-            for (int x = wsEnv.minX; x < wsEnv.minX + envDim && y < wsEnv.minY + envDim; x++, y++) {
-                if (wsEnv.contains(x, y) && ccf.getLabel(x, y) == label) {
-                    log.debug(String.format("bottom left = %d %d", x, y));
-                    swx = x;
-                    swy = y;
-                    return;
-                }
-            }
-        }
-    }
-
-    private void findBottomRightCorner(int label) {
-        for (int j = wsEnv.minY + envDim; j >= wsEnv.minY; j--) {
-            int y = j;
-            for (int x = wsEnv.minX + envDim; x >= wsEnv.minX && y < wsEnv.minY + envDim; x--, y++) {
-                if (wsEnv.contains(x, y) && ccf.getLabel(x, y) == label) {
-                    log.debug(String.format("bottom right = %d %d", x, y));
-                    sex = x;
-                    sey = y;
-                    return;
-                }
-            }
-        }
-    }
-
     /**
      * Gets the inverseTransform.
      * 
@@ -666,5 +590,4 @@ public class AztecDetector {
     public int getMatrixSize() {
         return matrixSize;
     }
-
 }
