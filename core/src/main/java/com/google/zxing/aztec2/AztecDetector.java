@@ -15,6 +15,7 @@
 package com.google.zxing.aztec2;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -171,6 +172,7 @@ public class AztecDetector {
         }
 
         Envelope env = component.getEnvelope();
+        
         int centreLabel = component.getLabel();
         int y = (env.minY + env.maxY) / 2;
         int x = (env.minX + env.maxX) / 2;
@@ -180,6 +182,10 @@ public class AztecDetector {
 
         int numRings = countCommonRings(east, west);
         if (numRings < 4) {
+            return false;
+        }
+        
+        if (! checkDistinct(east, numRings)) {
             return false;
         }
 
@@ -215,6 +221,19 @@ public class AztecDetector {
         log.debug("outer white square = {}", whiteSquare);
 
         return true;
+    }
+
+    /**
+     * @param rings
+     * @param numRings
+     * @return
+     */
+    private boolean checkDistinct(List<Integer> rings, int numRings) {
+        HashSet<Integer> distinct = new HashSet<Integer>();
+        for (int i = 0; i < numRings; i++) {
+            distinct.add(rings.get(i));
+        }
+        return distinct.size() == numRings;
     }
 
     /**
