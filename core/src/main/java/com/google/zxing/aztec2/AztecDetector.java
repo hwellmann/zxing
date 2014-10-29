@@ -185,6 +185,7 @@ public class AztecDetector {
             return false;
         }
         
+        numRings = Math.min(6, numRings);
         if (! checkDistinct(east, numRings)) {
             return false;
         }
@@ -401,7 +402,9 @@ public class AztecDetector {
             else {
                 // Each side of the form ..XXXXX.XXXXX. where Xs are parameter data
                 parameterData <<= 10;
-                parameterData += ((side >> 2) & (0x1f << 5)) + ((side >> 1) & 0x1F);
+                int sideBits = ((side >> 2) & (0x1f << 5)) + ((side >> 1) & 0x1F);
+                log.debug(Integer.toBinaryString(sideBits));
+                parameterData += sideBits;
             }
         }
 
