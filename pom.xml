@@ -612,6 +612,19 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>eos</id>
+      <distributionManagement>
+        <repository>
+          <id>eos-uptrade-releases</id>
+          <url>http://nexus.eos-uptrade.intern/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+          <id>eos-uptrade-snapshots</id>
+          <url>http://nexus.eos-uptrade.intern/content/repositories/snapshots</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
   </profiles>
 
 </project>
