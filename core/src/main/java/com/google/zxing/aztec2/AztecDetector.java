@@ -83,7 +83,7 @@ public class AztecDetector {
     };
 
     /** Module size in the resampled matrix. */
-    private static final int M = 4;
+    public static final int M = 6;
 
     /** The bit matrix this detector is working on. */
     private BitMatrix matrix;
