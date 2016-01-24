@@ -617,11 +617,11 @@
       <distributionManagement>
         <repository>
           <id>eos-uptrade-releases</id>
-          <url>http://nexus.eos-uptrade.intern/content/repositories/releases</url>
+          <url>https://nexus.uptrade.de/content/repositories/releases</url>
         </repository>
         <snapshotRepository>
           <id>eos-uptrade-snapshots</id>
-          <url>http://nexus.eos-uptrade.intern/content/repositories/snapshots</url>
+          <url>https://nexus.uptrade.de/content/repositories/snapshots</url>
         </snapshotRepository>
       </distributionManagement>
     </profile>
