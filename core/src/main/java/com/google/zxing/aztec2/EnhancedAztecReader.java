@@ -69,6 +69,33 @@ public class EnhancedAztecReader implements Reader {
         }
     }
 
+    /**
+     * Finds the region of interest in an image that is likely to contain an Aztec barcode. The
+     * region is computed by extrapolating the size of the detected bull's eye.
+     * 
+     * @param image
+     *            bitmap image
+     * @param maxMatrixSize
+     *            expected matrix size (number of modules)
+     * @return envelope of region of interest
+     * @throws NotFoundException
+     *             no region of interest found.
+     */
+    public Envelope findRegionOfInterest(BinaryBitmap image, int maxMatrixSize)
+        throws NotFoundException {
+        BitMatrix matrix = image.getBlackMatrix();
+        ConnectedComponentFinder ccf = new ConnectedComponentFinder(matrix, true);
+        ccf.findConnectedComponents();
+
+        AztecDetector detector = new AztecDetector(ccf);
+        if (detector.findBullsEye()) {
+            return detector.computeRegionOfInterest(maxMatrixSize);
+        }
+        else {
+            return null;
+        }
+    }
+
     public Result decodeUnsafe(BinaryBitmap image, Map<DecodeHintType, ?> hints)
         throws NotFoundException, ChecksumException, FormatException {
         BitMatrix matrix = image.getBlackMatrix();

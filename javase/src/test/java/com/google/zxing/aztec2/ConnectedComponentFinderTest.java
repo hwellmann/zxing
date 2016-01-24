@@ -73,7 +73,7 @@ public class ConnectedComponentFinderTest {
         for (int y = 0; y < matrix.getHeight(); y++) {
             for (int x = 0; x < matrix.getWidth(); x++) {
                 int label = ccf.getLabel(x, y);
-                System.out.print(String.format("%02d", label));
+                System.out.print(String.format("%03d", label));
             }
             System.out.println();
         }

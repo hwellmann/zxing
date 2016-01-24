@@ -73,7 +73,7 @@ import com.google.zxing.common.reedsolomon.ReedSolomonException;
  */
 public class AztecDetector {
 
-    private static Logger log = LoggerFactory.getLogger(AztecDetector.class);
+    private static Logger log = LoggerFactory.getLogger(AztecDetector.class.getSimpleName());
 
     private static final int ROT[][] = {
         { 0, 1, 3, 2 },
@@ -148,6 +148,22 @@ public class AztecDetector {
         }
         return found;
     }
+
+    public Envelope computeRegionOfInterest(int maxMatrixSize) throws NotFoundException {
+        findCorners();
+        Envelope bullsEyeEnvelope = new Envelope(q);
+        double bullsEyeSize = compact ? 7.0 : 11.0;
+        double moduleWidth = (bullsEyeEnvelope.maxX - bullsEyeEnvelope.minX) / bullsEyeSize;
+        double moduleHeight = (bullsEyeEnvelope.maxY - bullsEyeEnvelope.minY) / bullsEyeSize;
+        int d = (maxMatrixSize + 3) / 2;
+        int minX = Math.max((int) (bullsEyeEnvelope.minX - d * moduleWidth), 0);
+        int minY = Math.max((int) (bullsEyeEnvelope.minY - d * moduleHeight), 0);
+        int maxX = Math.min((int) (bullsEyeEnvelope.maxX + d * moduleWidth), matrix.getWidth() - 1);
+        int maxY = Math.min((int) (bullsEyeEnvelope.maxY + d * moduleHeight), matrix.getHeight() - 1);
+        log.info("region of interest = [({},{}), ({},{})]", minX, minY, maxX, maxY);
+        return new Envelope(minX, minY, maxX, maxY);
+    }
+
 
     public AztecDetectorResult getDetectorResult() {
         BitMatrix bits = normalizeMatrix(1, 0);
@@ -403,7 +419,11 @@ public class AztecDetector {
                 // Each side of the form ..XXXXX.XXXXX. where Xs are parameter data
                 parameterData <<= 10;
                 int sideBits = ((side >> 2) & (0x1f << 5)) + ((side >> 1) & 0x1F);
-                log.debug(Integer.toBinaryString(sideBits));
+                if (log.isDebugEnabled()) {
+                    String bits = Integer.toBinaryString(sideBits);
+                    String prefix = "0000000000".substring(0, 10 - bits.length());
+                    log.debug("mode line {}{}", prefix, bits);
+                }
                 parameterData += sideBits;
             }
         }

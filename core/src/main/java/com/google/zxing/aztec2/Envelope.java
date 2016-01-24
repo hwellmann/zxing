@@ -28,8 +28,48 @@ public class Envelope {
     int maxY = 0;
 
     /**
+     * Creates an empty envelope. {@link #contains(int, int)} returns {@code false} for any pair of
+     * coordinates.
+     */
+    public Envelope() {
+    }
+
+    /**
+     * Creates an envelope for the given quadilateral. The envelope is always a rectangle, unlike
+     * the quadrilateral.
+     *
+     * @param q
+     *            quadrilateral
+     */
+    public Envelope(Quadrilateral q) {
+        expand(q.nwx, q.nwy);
+        expand(q.nex, q.ney);
+        expand(q.swx, q.swy);
+        expand(q.sex, q.sey);
+    }
+
+    /**
+     * Creates an envelope spanned by the given north-west and south-east corners.
+     *
+     * @param minX
+     *            north-west x coordinate
+     * @param minY
+     *            north-west y coordinate
+     * @param maxX
+     *            south-east x coordinate
+     * @param maxY
+     *            south-east y coordinate
+     */
+    public Envelope(int minX, int minY, int maxX, int maxY) {
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+    }
+
+    /**
      * Expand the envelope to include the given pixel.
-     * 
+     *
      * @param x
      *            column index
      * @param y
@@ -52,7 +92,7 @@ public class Envelope {
 
     /**
      * Checks if the given pixel is contained in the envelope.
-     * 
+     *
      * @param x
      *            column index
      * @param y
@@ -66,5 +106,21 @@ public class Envelope {
     @Override
     public String toString() {
         return String.format("[(%d %d), (%d %d)]", minX, minY, maxX, maxY);
+    }
+
+    public int getMinX() {
+        return minX;
+    }
+
+    public int getMinY() {
+        return minY;
+    }
+
+    public int getWidth() {
+        return maxX - minX + 1;
+    }
+
+    public int getHeight() {
+        return maxY - minY + 1;
     }
 }

@@ -39,7 +39,6 @@ public class PerspectiveTransformTest {
         PerspectiveTransform transform = PerspectiveTransform.quadrilateralToQuadrilateral(155,
             137, 258, 139, 136, 228, 247, 231,
             158, 158, 202, 158, 158, 202, 202, 202);
-        // 200, 200, 240, 200, 200, 240, 240, 240);
 
         float[] points = new float[] {
             155, 137, 258, 139, 136, 228, 247, 231,
@@ -86,8 +85,6 @@ public class PerspectiveTransformTest {
                 int tx = Math.round(point[0]);
                 int ty = Math.round(point[1]);
 
-                // System.out.println(String.format("%f %f -> %d %d", x, y, tx, ty));
-
                 if (env.contains(tx, ty) && matrix.get(tx, ty)) {
                     transformedMatrix.set(i, j);
                 }
@@ -97,7 +94,5 @@ public class PerspectiveTransformTest {
         }
         MatrixToImageWriter.writeToPath(transformedMatrix, "PNG",
             Paths.get("target/transformed.png"));
-
     }
-
 }
